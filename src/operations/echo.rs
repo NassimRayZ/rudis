@@ -1,7 +1,7 @@
 use crate::resp::{redis_buffer::RedisBuffer, types::RedisError, Resp};
 
 pub(super) fn process_echo(array: Vec<Resp>) -> Result<Vec<u8>, RedisError> {
-    if array.len() == 1 {
+    if array.len() != 2 {
         return Err(RedisError::Args("echo".to_string()));
     }
 

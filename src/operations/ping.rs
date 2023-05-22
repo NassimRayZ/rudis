@@ -4,6 +4,9 @@ use crate::resp::{
 
 pub fn process_ping(array: Vec<Resp>) -> Result<Vec<u8>, RedisError> {
     let mut send: Vec<u8>;
+    if array.len() > 2 {
+        return Err(RedisError::Args("ping".into()));
+    }
     if array.len() == 1 {
         let response = SimpleString::from("PONG");
         send = vec![0; response.calc_len()];

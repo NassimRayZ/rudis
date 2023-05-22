@@ -1,4 +1,4 @@
-use std::sync::{Arc, Mutex};
+use std::sync::{Arc, RwLock};
 
 use crate::{cache::Cache, operations::process};
 use tokio::net::TcpListener;
@@ -12,7 +12,7 @@ const BUFFER_LENGTH: usize = 1024;
 /// A function that runs our event loop
 pub async fn run(socket_addr: &str) -> std::io::Result<()> {
     let listener = TcpListener::bind(socket_addr).await?;
-    let cache = Arc::new(Mutex::new(Cache::new()));
+    let cache = Arc::new(RwLock::new(Cache::new()));
     loop {
         match listener.accept().await {
             Ok((stream, _)) => tokio::spawn(handle_connection(stream, cache.clone())),
@@ -23,7 +23,7 @@ pub async fn run(socket_addr: &str) -> std::io::Result<()> {
 
 pub(super) async fn handle_connection(
     mut stream: TcpStream,
-    cache: Arc<Mutex<Cache>>,
+    cache: Arc<RwLock<Cache>>,
 ) -> std::io::Result<()> {
     let mut recv = [0u8; BUFFER_LENGTH];
     loop {
@@ -32,9 +32,7 @@ pub(super) async fn handle_connection(
             println!("Connection closed");
             break Ok(());
         }
-        let string = std::str::from_utf8(&recv).unwrap();
-        println!("{}", string);
-        let send = process(&mut recv);
+        let send = process(&mut recv, &cache);
         stream.write(&send).await?;
     }
 }

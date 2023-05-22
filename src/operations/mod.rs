@@ -3,12 +3,16 @@ mod get;
 mod ping;
 mod set;
 
+use std::sync::{Arc, RwLock};
+
+use crate::cache::Cache;
 use crate::resp::parser::{array::Array, error::Error};
 use crate::resp::redis_buffer::RedisBuffer;
 use crate::resp::types::RedisError;
 use crate::resp::Resp;
 
 use self::echo::process_echo;
+use self::get::process_get;
 use self::ping::process_ping;
 use self::set::process_set;
 
@@ -16,9 +20,10 @@ enum Command {
     Ping,
     Echo,
     Set,
+    Get,
 }
 
-pub fn process(buf: &mut [u8]) -> Vec<u8> {
+pub fn process(buf: &mut [u8], cache: &Arc<RwLock<Cache>>) -> Vec<u8> {
     let (array, cmd) = match retrieve_command(buf) {
         Ok(res) => res,
         Err(e) => return process_error(e),
@@ -26,7 +31,8 @@ pub fn process(buf: &mut [u8]) -> Vec<u8> {
     let result = match cmd {
         Command::Ping => process_ping(array),
         Command::Echo => process_echo(array),
-        Command::Set => process_set(array),
+        Command::Set => process_set(array, cache),
+        Command::Get => process_get(array, cache),
     };
     match result {
         Ok(send) => send,
@@ -54,6 +60,7 @@ fn retreive_command_from_array(mut array: Array) -> Result<(Vec<Resp>, Command),
             "ping" => Ok((array.take().unwrap(), Command::Ping)),
             "echo" => Ok((array.take().unwrap(), Command::Echo)),
             "set" => Ok((array.take().unwrap(), Command::Set)),
+            "get" => Ok((array.take().unwrap(), Command::Get)),
             _ => Err(RedisError::Unimplemented),
         },
         Some(_) => Err(RedisError::Unimplemented),

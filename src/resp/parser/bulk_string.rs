@@ -78,6 +78,12 @@ impl From<&str> for BulkString {
         Self(Some(value.to_string()))
     }
 }
+impl From<Option<String>> for BulkString {
+    fn from(value: Option<String>) -> Self {
+        Self(value)
+    }
+}
+
 impl ToString for BulkString {
     fn to_string(&self) -> String {
         let (cr, lf) = (CR as char, LF as char);

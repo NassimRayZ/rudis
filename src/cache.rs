@@ -11,10 +11,10 @@ impl Cache {
             data: HashMap::new(),
         }
     }
-    pub fn set(&mut self, key: String, value: String) {
-        self.data.insert(key, value);
+    pub fn set(&mut self, key: &str, value: &str) {
+        self.data.insert(key.to_string(), value.to_string());
     }
-    pub fn get(&self, key: String) -> Option<&String> {
-        self.data.get(&key)
+    pub fn get(&self, key: &str) -> Option<String> {
+        self.data.get(key).map(|s| s.to_owned())
     }
 }
