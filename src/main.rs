@@ -1,4 +1,4 @@
-use simple_redis::handler::startup;
+use simple_redis::startup;
 const SOCKET_ADDR: &str = "127.0.0.1:6379";
 
 #[tokio::main]

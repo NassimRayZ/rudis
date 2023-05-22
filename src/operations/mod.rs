@@ -10,10 +10,12 @@ use crate::resp::Resp;
 
 use self::echo::process_echo;
 use self::ping::process_ping;
+use self::set::process_set;
 
 enum Command {
     Ping,
     Echo,
+    Set,
 }
 
 pub fn process(buf: &mut [u8]) -> Vec<u8> {
@@ -24,6 +26,7 @@ pub fn process(buf: &mut [u8]) -> Vec<u8> {
     let result = match cmd {
         Command::Ping => process_ping(array),
         Command::Echo => process_echo(array),
+        Command::Set => process_set(array),
     };
     match result {
         Ok(send) => send,
@@ -50,6 +53,7 @@ fn retreive_command_from_array(mut array: Array) -> Result<(Vec<Resp>, Command),
         Some(Resp::BulkString { value }) => match value.as_str().to_lowercase().as_str() {
             "ping" => Ok((array.take().unwrap(), Command::Ping)),
             "echo" => Ok((array.take().unwrap(), Command::Echo)),
+            "set" => Ok((array.take().unwrap(), Command::Set)),
             _ => Err(RedisError::Unimplemented),
         },
         Some(_) => Err(RedisError::Unimplemented),
