@@ -9,6 +9,7 @@ pub enum RedisError {
     Void,
     Unimplemented,
     Args(String),
+    UnknownOption(String),
 }
 
 impl Display for RedisError {
@@ -28,6 +29,7 @@ impl Display for RedisError {
             RedisError::Args(cmd) => {
                 format!("ERROR: wrong number of arguments for '{}' command", cmd)
             }
+            RedisError::UnknownOption(opt) => format!("ERROR: unknown option:  {}", opt),
         };
 
         write!(f, "{}", error)?;

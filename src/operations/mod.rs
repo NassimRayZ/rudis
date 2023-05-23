@@ -5,7 +5,7 @@ mod set;
 
 use std::sync::{Arc, RwLock};
 
-use crate::cache::Cache;
+use crate::cache::{Cache, PriorityQueue};
 use crate::resp::parser::{array::Array, error::Error};
 use crate::resp::redis_buffer::RedisBuffer;
 use crate::resp::types::RedisError;
@@ -23,7 +23,7 @@ enum Command {
     Get,
 }
 
-pub fn process(buf: &mut [u8], cache: &Arc<RwLock<Cache>>) -> Vec<u8> {
+pub fn process(buf: &mut [u8], cache: &Arc<RwLock<Cache>>, pq: &Arc<PriorityQueue>) -> Vec<u8> {
     let (array, cmd) = match retrieve_command(buf) {
         Ok(res) => res,
         Err(e) => return process_error(e),
@@ -31,7 +31,7 @@ pub fn process(buf: &mut [u8], cache: &Arc<RwLock<Cache>>) -> Vec<u8> {
     let result = match cmd {
         Command::Ping => process_ping(array),
         Command::Echo => process_echo(array),
-        Command::Set => process_set(array, cache),
+        Command::Set => process_set(array, cache, pq),
         Command::Get => process_get(array, cache),
     };
     match result {
