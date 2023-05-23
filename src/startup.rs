@@ -1,5 +1,5 @@
 use std::sync::{Arc, RwLock};
-use std::time::Instant;
+use std::time::{Duration, Instant};
 
 use crate::cache::PriorityQueue;
 use crate::{cache::Cache, operations::process};
@@ -61,6 +61,7 @@ fn handle_cache(cache: Arc<RwLock<Cache>>, pq: Arc<PriorityQueue>) {
                         .expect("Failed to aquire `RwLock` for writing")
                         .remove(&entry.key);
                 }
+                std::thread::sleep(Duration::from_secs(1));
             } else {
                 break;
             }
