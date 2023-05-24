@@ -51,9 +51,11 @@ fn handle_cache(cache: Arc<RwLock<Cache>>, pq: Arc<PriorityQueue>) {
         .entries
         .lock()
         .expect("Failed to aquire `Mutex` from receiver");
+    let mut dur = Duration::from_secs(0);
     loop {
         if let Some(entry) = guard.peek() {
-            if entry.instant < Instant::now() {
+            dur = entry.instant - Instant::now();
+            if dur <= Duration::from_secs(0) {
                 let entry = guard.pop().unwrap();
                 cache
                     .write()
@@ -66,14 +68,12 @@ fn handle_cache(cache: Arc<RwLock<Cache>>, pq: Arc<PriorityQueue>) {
                 .filled
                 .wait(guard)
                 .expect("Failed while waiting for `PriorityQueue` to be filled");
-        } else {
-            println!("Dropping guard");
-            drop(guard);
-            std::thread::sleep(Duration::from_secs(10));
-            guard = pq
-                .entries
-                .lock()
-                .expect("Failed to aquire `Mutex` from receiver");
+            continue;
         }
+        guard = pq
+            .filled
+            .wait_timeout(guard, dur)
+            .expect("Failed while waiting with timeout for `PriorityQueue` to be filled")
+            .0;
     }
 }

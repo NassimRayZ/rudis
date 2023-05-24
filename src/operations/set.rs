@@ -54,10 +54,7 @@ fn process_set_opt(
             if opt.as_str().to_uppercase().as_str() != "EX" {
                 return Err(RedisError::UnknownOption(opt.as_str().to_string()));
             }
-            let expiry: u64 = expiry
-                .as_str()
-                .parse()
-                .expect(&format!("Failed to parse expiry {}", expiry.as_str()));
+            let expiry: u64 = expiry.as_str().parse().map_err(|_| RedisError::Parser)?;
             let instant = Instant::now() + Duration::from_secs(expiry);
             cache
                 .write()
